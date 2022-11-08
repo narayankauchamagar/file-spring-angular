@@ -1,0 +1,15 @@
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 10KB
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+
+allowed:
+  origins: '*'
+
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
