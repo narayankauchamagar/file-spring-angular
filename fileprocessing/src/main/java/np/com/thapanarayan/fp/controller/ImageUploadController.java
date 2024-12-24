@@ -1,6 +1,8 @@
 package np.com.thapanarayan.fp.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import np.com.thapanarayan.fp.dto.FileResponse;
+import np.com.thapanarayan.fp.dto.TokenDTO;
 import np.com.thapanarayan.fp.services.FileStorageService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
+@Slf4j
 @CrossOrigin(maxAge = 3600)
 @RestController
 public class ImageUploadController {
@@ -64,6 +68,33 @@ public class ImageUploadController {
     public ResponseEntity<?> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
         // Load file as Resource
         Resource resource = fileStorageService.loadFileAsResource(fileName);
+
+        // Try to determine file's content type
+        String contentType = null;
+        try {
+            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+        } catch (IOException ex) {
+            System.out.print("Could not determine file type.");
+        }
+
+        // Fallback to the default content type if type could not be determined
+        if(contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + resource.getFilename() + "")
+                .body(resource);
+    }
+
+
+    @PostMapping("download")
+    public ResponseEntity<?> downloadFilePost( @RequestParam("file") String file, HttpServletRequest request) {
+        // Load file as Resource
+        Resource resource = fileStorageService.loadFileAsResource(file);
+
+        log.info( "Token " +  file);
 
         // Try to determine file's content type
         String contentType = null;
